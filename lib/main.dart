@@ -52,6 +52,14 @@ class _ClipboardTyperAppState extends State<ClipboardTyperApp>
 
   AppSettings get _settings => _service.settings;
 
+  void _onTypingError(String message) {
+    if (!mounted) return;
+    setState(() => _lastTypingError = message);
+    if (Platform.isWindows) {
+      trayManager.setToolTip('ClipboardTyper: $message');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -62,13 +70,7 @@ class _ClipboardTyperAppState extends State<ClipboardTyperApp>
         typingDelayMs: defaultTypingDelayMs,
         startAtLogin: false,
       ),
-      onTypingError: (message) {
-        if (!mounted) return;
-        setState(() => _lastTypingError = message);
-        if (Platform.isWindows) {
-          trayManager.setToolTip('ClipboardTyper: $message');
-        }
-      },
+      onTypingError: _onTypingError,
     );
     windowManager.addListener(this);
     trayManager.addListener(this);
@@ -147,6 +149,7 @@ class _ClipboardTyperAppState extends State<ClipboardTyperApp>
           initialDelaySec: 0,
           typingDelayMs: _settings.typingDelayMs,
           maxChars: _settings.maxClipboardChars,
+          onTypingError: _onTypingError,
         );
         break;
       case 'settings':
@@ -188,6 +191,7 @@ class _ClipboardTyperAppState extends State<ClipboardTyperApp>
           initialDelaySec: 0,
           typingDelayMs: _settings.typingDelayMs,
           maxChars: _settings.maxClipboardChars,
+          onTypingError: _onTypingError,
         ),
       ),
     );

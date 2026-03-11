@@ -10,9 +10,12 @@ import 'package:clipboard_typer/src/security.dart' as sec;
 /// Only works on Windows. For use in remote sessions where paste is blocked.
 ///
 /// Throws [StateError] if [text] length exceeds [maxChars] (default [sec.maxClipboardChars]).
+/// [delayMs] is clamped to at least [sec.minTypingDelayMs]; 0ms causes dropped characters.
+/// [maxChars] is clamped to 1..[sec.maxClipboardChars].
 void typeText(String text, {int delayMs = 15, int? maxChars}) {
   if (text.isEmpty) return;
-  final limit = maxChars ?? sec.maxClipboardChars;
+  final effectiveDelay = delayMs < sec.minTypingDelayMs ? sec.minTypingDelayMs : delayMs;
+  final limit = sec.clampInt(maxChars ?? sec.maxClipboardChars, 1, sec.maxClipboardChars);
   final runes = text.runes.toList();
   if (runes.length > limit) {
     throw StateError('Clipboard too long (${runes.length} chars). Max: $limit');
@@ -35,8 +38,8 @@ void typeText(String text, {int delayMs = 15, int? maxChars}) {
       kbd.ref.ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
       SendInput(1, kbd, sizeOf<INPUT>());
 
-      if (delayMs > 0 && i < runes.length - 1) {
-        Sleep(delayMs);
+      if (i < runes.length - 1) {
+        Sleep(effectiveDelay);
       }
     }
   } finally {

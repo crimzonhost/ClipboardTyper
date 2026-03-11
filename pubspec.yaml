@@ -94,7 +94,7 @@ flutter:
 msix_config:
   display_name: ClipboardTyper
   publisher_display_name: ClipboardTyper
-  identity_name: com.clipboardtyper.clipboard_typer
+  identity_name: com.clipboardtyper.clipboard-typer
   msix_version: 1.0.0.0
   logo_path: assets/tray_icon.ico
   store: false

@@ -9,6 +9,32 @@
 
 ---
 
+## Download & install (Windows)
+
+Pre-built Windows builds are on **GitHub Releases**. Choose one of the two options below.
+
+### Option 1: Portable (no install)
+
+1. Go to **[Releases](https://github.com/crimzonhost/ClipboardTyper/releases)** and open the latest release.
+2. Download **`ClipboardTyper-1.0.0-windows-x64-portable.zip`** (or the current version’s portable zip).
+3. Extract the zip to a folder (e.g. `C:\Tools\ClipboardTyper` or a USB drive). You can put it anywhere you have read/execute permission — no need for Program Files.
+4. Run **`clipboard_typer.exe`** from that folder. The app runs in the system tray.
+5. (Optional) Create a shortcut to `clipboard_typer.exe` on your desktop or Start menu.
+
+Settings (hotkey, delays, “Start at login”) are stored in your user AppData and are kept if you move or replace the folder.
+
+### Option 2: Installer (MSIX)
+
+1. Go to **[Releases](https://github.com/crimzonhost/ClipboardTyper/releases)** and open the latest release.
+2. Download the **MSIX** file (e.g. **`clipboard_typer.msix`**).
+3. Double-click the `.msix` file and approve the install prompt.
+4. The app is installed for your user and appears in **Settings → Apps** and in Start.
+5. To uninstall: **Settings → Apps** → find “ClipboardTyper” → Uninstall.
+
+**Direct link:** [https://github.com/crimzonhost/ClipboardTyper/releases](https://github.com/crimzonhost/ClipboardTyper/releases)
+
+---
+
 ## Quick start
 
 ```bash

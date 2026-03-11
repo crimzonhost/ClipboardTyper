@@ -81,6 +81,8 @@ class ClipboardTyperService {
     required int typingDelayMs,
     int? maxChars,
   }) async {
+    final delaySec = sec.clampInt(initialDelaySec, 0, sec.maxInitialDelaySec);
+    final delayMs = sec.clampInt(typingDelayMs, sec.minTypingDelayMs, sec.maxTypingDelayMs);
     String? text;
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -94,16 +96,16 @@ class ClipboardTyperService {
       onTypingError?.call('Clipboard is empty');
       return;
     }
-    final limit = maxChars ?? _settings.maxClipboardChars;
+    final limit = sec.clampInt(maxChars ?? _settings.maxClipboardChars, 1, sec.maxClipboardChars);
     if (sec.textRuneLength(text) > limit) {
       onTypingError?.call('Clipboard too long (max $limit characters)');
       return;
     }
-    if (initialDelaySec > 0) {
-      await Future<void>.delayed(Duration(seconds: initialDelaySec));
+    if (delaySec > 0) {
+      await Future<void>.delayed(Duration(seconds: delaySec));
     }
     try {
-      typeText(text, delayMs: typingDelayMs, maxChars: limit);
+      typeText(text, delayMs: delayMs, maxChars: limit);
     } catch (e) {
       if (kDebugMode) debugPrint('ClipboardTyper: type failed: $e');
       onTypingError?.call('Typing failed');
@@ -112,25 +114,40 @@ class ClipboardTyperService {
 
   /// Reads clipboard text and types it into the active window.
   /// Used from tray "Type now" and Settings button; uses provided limits.
+  /// If [onTypingError] is provided, errors (empty, too long, read/type failure) are reported.
+  /// All parameters are clamped to security bounds.
   static Future<void> typeClipboard({
     int initialDelaySec = 0,
     int typingDelayMs = defaultTypingDelayMs,
     int maxChars = sec.maxClipboardChars,
+    TypingErrorCallback? onTypingError,
   }) async {
+    final delaySec = sec.clampInt(initialDelaySec, 0, sec.maxInitialDelaySec);
+    final delayMs = sec.clampInt(typingDelayMs, sec.minTypingDelayMs, sec.maxTypingDelayMs);
+    final limit = sec.clampInt(maxChars, 1, sec.maxClipboardChars);
     String? text;
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       text = data?.text;
     } catch (_) {
+      onTypingError?.call('Could not read clipboard');
       return;
     }
-    if (text == null || text.isEmpty) return;
-    if (sec.textRuneLength(text) > maxChars) return;
-    if (initialDelaySec > 0) {
-      await Future<void>.delayed(Duration(seconds: initialDelaySec));
+    if (text == null || text.isEmpty) {
+      onTypingError?.call('Clipboard is empty');
+      return;
+    }
+    if (sec.textRuneLength(text) > limit) {
+      onTypingError?.call('Clipboard too long (max $limit characters)');
+      return;
+    }
+    if (delaySec > 0) {
+      await Future<void>.delayed(Duration(seconds: delaySec));
     }
     try {
-      typeText(text, delayMs: typingDelayMs, maxChars: maxChars);
-    } catch (_) {}
+      typeText(text, delayMs: delayMs, maxChars: limit);
+    } catch (_) {
+      onTypingError?.call('Typing failed');
+    }
   }
 }

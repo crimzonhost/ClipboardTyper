@@ -81,3 +81,34 @@ Security model, limits, and recommendations.
 ## Single instance (future)
 
 Currently, running multiple copies of the app will each register the same hotkey; behavior is per-process and may be confusing. A future improvement is to enforce a single instance (e.g. named mutex or `window_manager` single-instance API) so only one process owns the hotkey.
+
+---
+
+## Security review (summary)
+
+A code review was performed with the following results.
+
+### Strengths
+
+- **Clipboard**: Read-only, length-capped (1–100k runes), no persistence of content.
+- **Input validation**: Delays and max characters are clamped in `security.dart` and when loading/saving settings; hotkey JSON errors fall back to defaults.
+- **No secrets**: Only preferences in AppData; no credentials or clipboard history stored.
+- **No network**: App and MSIX do not use network capabilities.
+- **Typing**: Uses Win32 `SendInput` with `KEYEVENTF_UNICODE` only; no shell or command execution; UIPI limits which windows can receive input.
+- **Transparency**: Errors from the hotkey path are reported via callback (tray tooltip, SnackBar when Settings open). After the review fix, "Type now" (tray and Settings button) also reports errors via the same callback.
+
+### Issues addressed
+
+- **Silent failure on "Type now"**: The static `typeClipboard()` used by the tray and Settings "Type clipboard now" actions did not report errors (empty clipboard, too long, read/type failure). An optional `onTypingError` parameter was added and wired so the user always gets feedback, consistent with the hotkey path.
+
+### Hardening (follow-up)
+
+- **Defense in depth**: All delay and length parameters are clamped to security bounds inside the service and typist, even when coming from already-valid settings (guards against future callers or corrupted state).
+- **Hotkey load**: Stored hotkey JSON is validated (must be `Map` with `key` present) before use; invalid or corrupted prefs fall back to default hotkey.
+- **Error display**: Clipboard check failure in Settings shows a generic message (“Clipboard access denied or unavailable”) instead of exception text, to avoid leaking paths or internal details.
+
+### Recommendations
+
+- **Dependencies**: Periodically run `dart pub outdated` and consider `dart pub global activate dep_audit` then `dep_audit` for dependency hygiene. Rely on pub.dev and known dependencies.
+- **Single instance**: Implementing single-instance enforcement would reduce confusion and avoid duplicate hotkey handlers.
+- **SDK/Flutter**: Keep Dart and Flutter versions current for security fixes (e.g. pub/client path traversal fixes in newer SDK/Flutter).

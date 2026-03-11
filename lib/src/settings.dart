@@ -66,14 +66,16 @@ Future<AppSettings> loadSettings() async {
   try {
     final json = prefs.getString(_keyHotKey);
     if (json != null) {
-      final map = jsonDecode(json) as Map<String, dynamic>;
-      hotKey = HotKey.fromJson(map);
-      hotKey = HotKey(
-        identifier: hotKey.identifier,
-        key: hotKey.key,
-        modifiers: hotKey.modifiers,
-        scope: HotKeyScope.system,
-      );
+      final map = jsonDecode(json);
+      if (map is Map<String, dynamic> && map.containsKey('key')) {
+        hotKey = HotKey.fromJson(map);
+        hotKey = HotKey(
+          identifier: hotKey.identifier,
+          key: hotKey.key,
+          modifiers: hotKey.modifiers,
+          scope: HotKeyScope.system,
+        );
+      }
     }
   } catch (_) {}
   final rawInitial = prefs.getInt(_keyInitialDelaySec) ?? defaultInitialDelaySec;

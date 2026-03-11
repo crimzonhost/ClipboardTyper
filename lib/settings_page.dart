@@ -56,8 +56,11 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       await Clipboard.getData(Clipboard.kTextPlain);
       if (mounted) setState(() { _clipboardOk = true; _clipboardError = null; });
-    } catch (e) {
-      if (mounted) setState(() { _clipboardOk = false; _clipboardError = e.toString(); });
+    } catch (_) {
+      if (mounted) setState(() {
+        _clipboardOk = false;
+        _clipboardError = 'Clipboard access denied or unavailable';
+      });
     }
   }
 
@@ -129,19 +132,20 @@ class _SettingsPageState extends State<SettingsPage> {
             const Text('Delay between keystrokes (ms)', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Slider(
-              value: _settings.typingDelayMs.toDouble(),
-              min: 5,
+              value: _settings.typingDelayMs.clamp(sec.minTypingDelayMs, 100).toDouble(),
+              min: sec.minTypingDelayMs.toDouble(),
               max: 100,
               divisions: 19,
               label: '${_settings.typingDelayMs}ms',
               onChanged: (v) {
                 setState(() {
-                  _settings = _settings.copyWith(typingDelayMs: v.toInt());
+                  _settings = _settings.copyWith(typingDelayMs: v.toInt().clamp(sec.minTypingDelayMs, sec.maxTypingDelayMs));
                   _apply();
                 });
               },
             ),
-            Text('${_settings.typingDelayMs} ms', style: Theme.of(context).textTheme.bodySmall),
+            Text('${_settings.typingDelayMs} ms (minimum 5 ms for reliable typing)',
+                style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 20),
             // Require confirmation (double-press)
             SwitchListTile(
