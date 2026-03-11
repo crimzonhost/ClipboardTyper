@@ -1,0 +1,53 @@
+# Build Windows release artifacts and attach them to the GitHub Release.
+# Trigger: publish a Release from a tag (e.g. v1.0.0).
+# Produces: MSIX installer + portable zip for easy download.
+
+name: Release build (Windows)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: flutter build windows
+
+      - name: Create MSIX installer
+        run: echo N | dart run msix:create
+
+      - name: Prepare installer filename
+        id: msix
+        run: |
+          $msix = (Get-ChildItem -Path build\windows\x64\runner\Release\*.msix | Select-Object -First 1)
+          if (-not $msix) { Write-Error "No .msix file found"; exit 1 }
+          echo "path=build/windows/x64/runner/Release/$($msix.Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Create portable zip
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "ClipboardTyper-$tag-windows-x64-portable.zip"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            ${{ steps.msix.outputs.path }}
+            ClipboardTyper-${{ github.event.release.tag_name }}-windows-x64-portable.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
