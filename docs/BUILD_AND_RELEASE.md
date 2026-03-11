@@ -23,6 +23,16 @@ Pre-built Windows builds are attached to [GitHub Releases](https://github.com/cr
 2. Double-click the `.msix` file (or run it via **Settings → Apps → Advanced options → App execution aliases** if you use that flow). Approve the install prompt.
 3. The app is installed per-user and appears in **Settings → Apps** and in Start. Uninstall via **Settings → Apps** when you no longer need it.
 
+**If Windows blocks the MSIX** (“certificate not trusted”), the package is signed with a test certificate. To produce a trusted install, use a real code signing certificate and sign the MSIX (see [Code signing](docs/SIGNING.md)).
+
+### Option C: EXE installer (Inno Setup)
+
+1. Download the **Setup ClipboardTyper x.x.x.exe** (or similar) from the latest release.
+2. Run the setup.exe. Choose install location and complete the wizard.
+3. Uninstall via **Settings → Apps** or **Add or remove programs**.
+
+The EXE installer is built with Inno Setup (`dart run inno_bundle`). If the build is signed with a code signing certificate, Windows will show the publisher and reduce SmartScreen warnings. See [Code signing](docs/SIGNING.md).
+
 ---
 
 ## Prerequisites (for building)
@@ -78,6 +88,8 @@ echo N | dart run msix:create
 
 The MSIX file is generated under `build/windows/x64/runner/Release/`, e.g. `clipboard_typer.msix` (or a versioned name depending on the msix package).
 
+**Signing:** To avoid Windows blocking the MSIX, sign it with a trusted code signing certificate. See [Code signing](SIGNING.md).
+
 ### Install
 
 - **Double-click** the `.msix` file, or
@@ -91,6 +103,28 @@ The app will appear in Start and in **Settings → Apps**.
 - **Settings → Apps** → find “ClipboardTyper” → Uninstall, or
 - **PowerShell**:  
   `Get-AppxPackage -Name *clipboardtyper* | Remove-AppxPackage`
+
+---
+
+## EXE installer (Inno Setup)
+
+A traditional **setup.exe** installer is built with Inno Setup via the `inno_bundle` package. Users run the exe, choose install location, and get Start menu entry and Add/remove programs entry. No Store or MSIX required.
+
+### Build the EXE installer
+
+```bash
+# 1. Build the Windows release binary
+flutter build windows
+
+# 2. Create the setup.exe
+dart run inno_bundle
+```
+
+The output path is shown by the tool (often under `build/` or the project folder). The resulting file is typically named like `ClipboardTyper-x86_64-1.0.0+1-Installer.exe` in `build/windows/x64/installer/Release/`.
+
+### Signing the EXE installer
+
+To avoid SmartScreen warnings and show a verified publisher, sign the setup.exe with a code signing certificate. See [Code signing](SIGNING.md) for `signtool` and `--sign-tool-params` usage.
 
 ---
 
@@ -155,3 +189,5 @@ Users can then download both files from the release page. For future releases yo
 - **“Windows desktop not supported”**: Run `flutter config --enable-windows-desktop` and ensure the Flutter Windows toolchain is installed.
 - **MSIX create fails**: Ensure `flutter build windows` completed successfully and that the path to `logo_path` exists under the project.
 - **App doesn’t start after install**: Check that the correct architecture (e.g. x64) matches your OS. Install the same architecture MSIX you built.
+
+- **MSIX or EXE blocked by Windows / SmartScreen**: The default MSIX uses a test certificate; the EXE installer may be unsigned. See [Code signing](SIGNING.md) to sign with a trusted certificate.

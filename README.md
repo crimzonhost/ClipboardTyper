@@ -31,7 +31,27 @@ Settings (hotkey, delays, “Start at login”) are stored in your user AppData 
 4. The app is installed for your user and appears in **Settings → Apps** and in Start.
 5. To uninstall: **Settings → Apps** → find “ClipboardTyper” → Uninstall.
 
+**If Windows blocks the MSIX** (“certificate not trusted”), it’s signed with a test certificate. Use the **EXE installer** or **portable zip** instead, or see [Code signing](docs/SIGNING.md) to build a signed MSIX.
+
+### Option 3: EXE installer (recommended if MSIX is blocked)
+
+1. Go to **[Releases](https://github.com/crimzonhost/ClipboardTyper/releases)** and open the latest release.
+2. Download **Setup ClipboardTyper x.x.x.exe** (or the current EXE installer).
+3. Run the setup.exe and follow the wizard. No Store or certificate prompt.
+4. Uninstall via **Settings → Apps** or **Add or remove programs**.
+
+The EXE installer is built with Inno Setup. If the publisher has signed it with a code signing certificate, Windows will show the publisher and reduce warnings.
+
 **Direct link:** [https://github.com/crimzonhost/ClipboardTyper/releases](https://github.com/crimzonhost/ClipboardTyper/releases)
+
+**If the releases page is empty:** A maintainer needs to create the first release and attach the files. Set a GitHub Personal Access Token (repo scope), then run the script from the repo root:
+
+```powershell
+$env:GH_TOKEN = "ghp_your_token_here"   # Create at https://github.com/settings/tokens
+.\scripts\create-release.ps1
+```
+
+No GitHub CLI required. See `scripts/create-release.ps1` for details.
 
 ---
 
@@ -59,7 +79,8 @@ flutter run -d windows
 | [Settings](docs/SETTINGS.md) | All options (hotkey, delays, security, startup) |
 | [Architecture](docs/ARCHITECTURE.md) | Code structure and main components |
 | [Security](docs/SECURITY.md) | Security model, limits, and recommendations |
-| [Build & release](docs/BUILD_AND_RELEASE.md) | Building and packaging (MSIX, install/uninstall) |
+| [Build & release](docs/BUILD_AND_RELEASE.md) | Building and packaging (MSIX, EXE installer, install/uninstall) |
+| [Code signing](docs/SIGNING.md) | Signing MSIX and EXE so Windows doesn't block install |
 | [Implementation notes](IMPLEMENTATION_NOTES.md) | Design decisions, Windows behavior, summary table |
 | [Changelog](CHANGELOG.md) | Version history |
 

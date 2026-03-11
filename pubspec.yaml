@@ -44,6 +44,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   msix: ^3.15.0
+  inno_bundle: ^0.11.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -98,3 +99,18 @@ msix_config:
   msix_version: 1.0.0.0
   logo_path: assets/tray_icon.ico
   store: false
+  # To sign with a trusted cert so Windows doesn't block install, add:
+  # certificate_path: C:\path\to\your.pfx
+  # certificate_password: your_password
+  # install_certificate: false
+
+# EXE installer (Inno Setup). Build with: dart run inno_bundle
+inno_bundle:
+  id: 9a7b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d
+  name: ClipboardTyper
+  description: Type your clipboard into the active window with a global shortcut.
+  publisher: ClipboardTyper
+  url: https://github.com/crimzonhost/ClipboardTyper
+  installer_icon: assets/tray_icon.ico
+  admin: false
+  vc_redist: true
